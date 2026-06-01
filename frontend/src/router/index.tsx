@@ -6,6 +6,7 @@ import TeacherDashboard from '@/pages/teacher/DashboardPage'
 import { TeacherLayout } from '@/components/layout/TeacherLayout'
 import StudentDashboard from '@/pages/student/DashboardPage'
 import AdminDashboard from '@/pages/admin/DashboardPage'
+import { AdminLayout } from '@/components/layout/AdminLayout'
 
 /**
  * ProtectedRoute — guards routes by authentication status and role.
@@ -47,7 +48,11 @@ export default function AppRouter() {
 
         <Route path="/admin/*" element={
           <ProtectedRoute role="ADMIN">
-            <AdminDashboard />
+            <AdminLayout>
+              <Routes>
+                <Route path="" element={<AdminDashboard />} />
+              </Routes>
+            </AdminLayout>
           </ProtectedRoute>
         } />
 

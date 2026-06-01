@@ -1,4 +1,4 @@
-import { useState, forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
+import { useState, useEffect, forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -229,6 +229,16 @@ function LoginForm({ onForgot }: { onForgot: () => void }) {
       >
         [Dev] Đăng nhập nhanh (Teacher)
       </button>
+      <button 
+        type="button" 
+        onClick={() => {
+          setAuth({ id: "a1", name: "Quản trị viên", email: "admin@edumind.vn", role: "ADMIN" }, "fake-jwt-token");
+          window.location.href = "/admin";
+        }}
+        className="w-full h-9 rounded-xl bg-violet-600/10 text-violet-600 hover:bg-violet-600/20 font-semibold text-sm transition-colors"
+      >
+        [Dev] Đăng nhập nhanh (Admin)
+      </button>
       <GoogleButton label="Đăng nhập bằng Google" />
     </form>
   );
@@ -303,9 +313,10 @@ function RegisterForm() {
 function ForgotForm({ onBack, isActive }: { onBack: () => void; isActive?: boolean }) {
   const [sent, setSent] = useState(false);
   
-  if (!isActive && sent) {
-    setSent(false);
-  }
+  // Reset trạng thái khi tab không còn active
+  useEffect(() => {
+    if (!isActive) setSent(false);
+  }, [isActive]);
   const {
     register,
     handleSubmit,
