@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import axiosInstance from "@/api/axiosInstance";
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -164,10 +165,19 @@ function LoginForm({ onForgot }: { onForgot: () => void }) {
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
   
-  const onSubmit = async () => {
-    // Tạm thời Fake Login thành công với quyền Teacher để có thể test giao diện
-    setAuth({ id: "t1", name: "Cô Mỹ Hạnh", email: "hanh@edumind.vn", role: "TEACHER" }, "fake-jwt-token");
-    navigate("/teacher");
+  const onSubmit = async (data: LoginForm) => {
+    try {
+      const response = await axiosInstance.post("/auth/login", data);
+      const { token, userId, name, email, role } = response.data;
+      setAuth({ id: userId.toString(), name, email, role }, token);
+      
+      if (role === "TEACHER") navigate("/teacher");
+      else if (role === "STUDENT") navigate("/student");
+      else navigate("/admin");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      alert(error.response?.data?.message || "Đăng nhập thất bại");
+    }
   };
 
   return (
@@ -218,27 +228,7 @@ function LoginForm({ onForgot }: { onForgot: () => void }) {
         {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập vào hệ thống"}
       </Button>
 
-      <Divider />
-      <button 
-        type="button" 
-        onClick={() => {
-          setAuth({ id: "t1", name: "Cô Mỹ Hạnh", email: "hanh@edumind.vn", role: "TEACHER" }, "fake-jwt-token");
-          window.location.href = "/teacher";
-        }}
-        className="w-full h-9 rounded-xl bg-chart-2/20 text-chart-2 hover:bg-chart-2/30 font-semibold text-sm transition-colors"
-      >
-        [Dev] Đăng nhập nhanh (Teacher)
-      </button>
-      <button 
-        type="button" 
-        onClick={() => {
-          setAuth({ id: "a1", name: "Quản trị viên", email: "admin@edumind.vn", role: "ADMIN" }, "fake-jwt-token");
-          window.location.href = "/admin";
-        }}
-        className="w-full h-9 rounded-xl bg-violet-600/10 text-violet-600 hover:bg-violet-600/20 font-semibold text-sm transition-colors"
-      >
-        [Dev] Đăng nhập nhanh (Admin)
-      </button>
+
       <GoogleButton label="Đăng nhập bằng Google" />
     </form>
   );
@@ -253,8 +243,20 @@ function RegisterForm() {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = async () => {
-    // TODO: Call register API
+  const { setAuth } = useAuthStore();
+  const navigate = useNavigate();
+
+  const onSubmit = async (data: RegisterForm) => {
+    try {
+      const payload = { ...data, role: "STUDENT" }; // Tạm thời hardcode STUDENT để test, hoặc có thể thêm UI chọn
+      const response = await axiosInstance.post("/auth/register", payload);
+      const { token, userId, name, email, role } = response.data;
+      setAuth({ id: userId.toString(), name, email, role }, token);
+      navigate("/teacher");
+    } catch (error: any) {
+      console.error("Register error:", error);
+      alert(error.response?.data?.message || "Đăng ký thất bại");
+    }
   };
 
   return (

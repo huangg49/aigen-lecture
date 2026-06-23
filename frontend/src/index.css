@@ -48,73 +48,81 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ============================================================
+   LIGHT MODE — Spatial Minimalist
+   Không gian rộng, trắng kem nhẹ, bóng đổ siêu mềm
+   ============================================================ */
 :root {
-    --background: oklch(0.99 0 0);
-    --foreground: oklch(0.145 0 0);
+    --background: oklch(0.985 0.002 280);
+    --foreground: oklch(0.15 0.025 270);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.15 0.025 270);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.45 0.2 280); /* Indigo/Violet */
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.96 0.02 280);
-    --secondary-foreground: oklch(0.3 0.1 280);
-    --muted: oklch(0.96 0.02 280);
-    --muted-foreground: oklch(0.55 0.05 280);
-    --accent: oklch(0.96 0.02 280);
-    --accent-foreground: oklch(0.45 0.2 280);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.9 0.03 280);
-    --input: oklch(0.9 0.03 280);
-    --ring: oklch(0.45 0.2 280);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
+    --popover-foreground: oklch(0.15 0.025 270);
+    --primary: oklch(0.48 0.22 280);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.95 0.015 280);
+    --secondary-foreground: oklch(0.35 0.12 280);
+    --muted: oklch(0.95 0.01 280);
+    --muted-foreground: oklch(0.52 0.04 270);
+    --accent: oklch(0.95 0.015 280);
+    --accent-foreground: oklch(0.48 0.22 280);
+    --destructive: oklch(0.57 0.245 27);
+    --border: oklch(0.91 0.02 270);
+    --input: oklch(0.91 0.02 270);
+    --ring: oklch(0.48 0.22 280);
+    --chart-1: oklch(0.646 0.222 41);
+    --chart-2: oklch(0.6 0.118 184);
+    --chart-3: oklch(0.398 0.07 227);
+    --chart-4: oklch(0.828 0.189 84);
+    --chart-5: oklch(0.769 0.188 70);
     --radius: 0.75rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar: oklch(0.99 0.003 280);
+    --sidebar-foreground: oklch(0.15 0.025 270);
+    --sidebar-primary: oklch(0.48 0.22 280);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.95 0.015 280);
+    --sidebar-accent-foreground: oklch(0.48 0.22 280);
+    --sidebar-border: oklch(0.91 0.02 270);
+    --sidebar-ring: oklch(0.48 0.22 280);
 }
 
+/* ============================================================
+   DARK MODE — AI Futuristic (Glassmorphism Ready)
+   Nền tím tối sâu, card bán trong suốt, viền phát sáng
+   ============================================================ */
 .dark {
-    --background: oklch(0.13 0.02 280); /* Deep indigo dark */
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.17 0.03 280);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.17 0.03 280);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.65 0.2 280); /* Lighter violet for dark mode */
+    --background: oklch(0.11 0.025 285);
+    --foreground: oklch(0.96 0.005 280);
+    --card: oklch(0.155 0.03 283);
+    --card-foreground: oklch(0.96 0.005 280);
+    --popover: oklch(0.155 0.03 283);
+    --popover-foreground: oklch(0.96 0.005 280);
+    --primary: oklch(0.67 0.2 278);
     --primary-foreground: oklch(0.1 0.02 280);
-    --secondary: oklch(0.2 0.04 280);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.2 0.04 280);
-    --muted-foreground: oklch(0.7 0.05 280);
-    --accent: oklch(0.2 0.04 280);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --border: oklch(0.25 0.05 280);
-    --input: oklch(0.25 0.05 280);
-    --ring: oklch(0.65 0.2 280);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --secondary: oklch(0.19 0.04 282);
+    --secondary-foreground: oklch(0.96 0.005 280);
+    --muted: oklch(0.19 0.04 282);
+    --muted-foreground: oklch(0.65 0.05 278);
+    --accent: oklch(0.19 0.04 282);
+    --accent-foreground: oklch(0.96 0.005 280);
+    --destructive: oklch(0.4 0.14 25);
+    --border: oklch(0.26 0.055 282);
+    --input: oklch(0.22 0.045 282);
+    --ring: oklch(0.67 0.2 278);
+    --chart-1: oklch(0.488 0.243 264);
+    --chart-2: oklch(0.696 0.17 162);
+    --chart-3: oklch(0.769 0.188 70);
+    --chart-4: oklch(0.627 0.265 303);
+    --chart-5: oklch(0.645 0.246 16);
+    --sidebar: oklch(0.135 0.028 285);
+    --sidebar-foreground: oklch(0.96 0.005 280);
+    --sidebar-primary: oklch(0.67 0.2 278);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.19 0.04 282);
+    --sidebar-accent-foreground: oklch(0.96 0.005 280);
+    --sidebar-border: oklch(0.26 0.055 282);
+    --sidebar-ring: oklch(0.67 0.2 278);
 }
 
 @layer base {
@@ -131,32 +139,83 @@
   }
 }
 
-
-
-/* Custom Scrollbar — WebKit (Chrome, Edge, Safari) */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ============================================================
+   BLOB ANIMATIONS — nền orb cho dark mode layout
+   ============================================================ */
+@keyframes blob-drift {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.05); }
+  66%       { transform: translate(-20px, 10px) scale(0.97); }
 }
 
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.6; }
+}
+
+.animate-blob {
+  animation: blob-drift 9s ease-in-out infinite;
+}
+.animate-blob-delay-2 {
+  animation: blob-drift 11s ease-in-out 2s infinite;
+}
+.animate-blob-delay-4 {
+  animation: blob-drift 13s ease-in-out 4s infinite;
+}
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* ============================================================
+   GLASSMORPHISM — dùng trong dark mode
+   ============================================================ */
+.glass {
+  background: oklch(0.155 0.03 283 / 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid oklch(0.26 0.055 282 / 0.5);
+}
+
+/* ============================================================
+   BENTO CARD — hover effect dùng chung cho cả 2 modes
+   ============================================================ */
+.bento-card {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease,
+              border-color 0.3s ease;
+}
+.bento-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Gradient text */
+.text-gradient-primary {
+  background: linear-gradient(135deg, oklch(0.67 0.2 278), oklch(0.6 0.2 300), oklch(0.7 0.18 260));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ============================================================
+   CUSTOM SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 8px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
-
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
-
-/* Custom Scrollbar — Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;

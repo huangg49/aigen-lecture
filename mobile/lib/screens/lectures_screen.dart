@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'lecture_video_screen.dart';
 
 class LecturesScreen extends StatelessWidget {
   const LecturesScreen({super.key});
@@ -279,7 +280,17 @@ class LecturesScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // TODO: Thay lectureId = 1 bằng ID thực từ API khi backend sẵn sàng
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => LectureVideoScreen(
+                          lectureId: 1,
+                          lectureTitle: title,
+                        ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: Colors.white,
