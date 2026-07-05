@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/main_screen.dart';
+import 'screens/student/student_main_screen.dart';
+import 'screens/shared/auth_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -116,7 +117,7 @@ class MyApp extends StatelessWidget {
           }),
         ),
       ),
-      home: const MainScreen(),
+      home: const AuthScreen(),
     );
   }
 }
