@@ -19,12 +19,4 @@ VALUES
   ('ADMIN', 'Admin EduMind', 'admin@edumind.dev',
    '$2b$10$mp3BRURQvkevLTbY2BwkZeYGITaHF0p/P/E6P4/PtMDQ1lKWSibHq',
    'ACTIVE', NOW())
-ON CONFLICT (email) DO NOTHING;
-INSERT INTO lectures (teacher_id, title, original_source, video_status, created_at)
-VALUES
-  (1, 'Lecture 1', 'src 1', 'PENDING', NOW()),
-  (1, 'Lecture 2', 'src 2', 'PENDING', NOW()),
-  (1, 'Lecture 3', 'src 3', 'PENDING', NOW()),
-  (1, 'Lecture 4', 'src 4', 'PENDING', NOW()),
-  (1, 'Lecture 5', 'src 5', 'PENDING', NOW())
-ON CONFLICT DO NOTHING;
+ON CONFLICT (email) DO NOTHING;
