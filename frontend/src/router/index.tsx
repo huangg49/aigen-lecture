@@ -4,6 +4,7 @@ import { useAuthStore, type Role } from '@/store/authStore'
 import LandingPage from '@/pages/landing/LandingPage'
 import TeacherDashboard from '@/pages/teacher/DashboardPage'
 import CreateLecturePage from '@/pages/teacher/CreateLecturePage'
+import TeacherLecturesPage from '@/pages/teacher/LecturesPage'
 import { TeacherLayout } from '@/components/layout/TeacherLayout'
 import StudentDashboard from '@/pages/student/DashboardPage'
 import StudentLecturesPage from '@/pages/student/LecturesPage'
@@ -38,7 +39,9 @@ export default function AppRouter() {
             <TeacherLayout>
               <Routes>
                 <Route path="" element={<TeacherDashboard />} />
+                <Route path="lectures" element={<TeacherLecturesPage />} />
                 <Route path="lectures/create" element={<CreateLecturePage />} />
+                <Route path="lectures/:lectureId" element={<WatchLecturePage />} />
                 {/* Các sub-routes khác của teacher sẽ thêm vào đây */}
               </Routes>
             </TeacherLayout>

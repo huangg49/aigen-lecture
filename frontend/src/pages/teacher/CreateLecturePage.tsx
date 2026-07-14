@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { FileUp, Plus, Trash2, Sparkles, Loader2, CheckCircle2, XCircle, Clock, UploadCloud } from 'lucide-react'
+import { FileUp, Plus, Trash2, Sparkles, Loader2, CheckCircle2, XCircle, Clock, UploadCloud, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   createLecture, getVideoStatus, generateFromFile,
@@ -83,6 +83,17 @@ export default function CreateLecturePage() {
   // States cho file upload LLM
   const [isGeneratingLLM, setIsGeneratingLLM] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const quizSectionRef = useRef<HTMLDivElement>(null)
+  const [highlightQuiz, setHighlightQuiz] = useState(false)
+
+  const handleScrollToQuiz = () => {
+    quizSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setHighlightQuiz(false)
+    setTimeout(() => {
+      setHighlightQuiz(true)
+      setTimeout(() => setHighlightQuiz(false), 1200)
+    }, 300)
+  }
 
   // ── Slide CRUD ──────────────────────────────────────────────────────────────
 
@@ -426,8 +437,8 @@ export default function CreateLecturePage() {
           </button>
 
           {/* ── Quiz Section ─────────────────────────────────────────────────── */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="space-y-4 scroll-mt-24" ref={quizSectionRef}>
+            <div className={`flex items-center justify-between p-3 rounded-2xl transition-all duration-700 ${highlightQuiz ? 'bg-chart-1/15 ring-2 ring-chart-1/50 scale-[1.02] shadow-lg' : ''}`}>
               <div>
                 <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                   <span className="w-6 h-6 rounded-md bg-chart-1/15 text-chart-1 text-xs flex items-center justify-center font-bold">Q</span>
@@ -599,6 +610,17 @@ export default function CreateLecturePage() {
             </Button>
           )}
         </div>
+      )}
+
+      {/* Floating Button: Kéo xuống Quiz */}
+      {step === 'form' && (
+        <button
+          onClick={handleScrollToQuiz}
+          className="fixed bottom-10 right-10 w-14 h-14 bg-chart-1 text-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:scale-105 transition-all flex items-center justify-center z-50 group"
+          title="Cuộn xuống Câu hỏi trắc nghiệm"
+        >
+          <HelpCircle size={26} className="group-hover:animate-bounce" />
+        </button>
       )}
     </div>
   )

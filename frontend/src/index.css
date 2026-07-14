@@ -137,6 +137,18 @@
     @apply font-sans;
     scroll-behavior: smooth;
   }
+  button, 
+  [type='button'], 
+  [type='reset'], 
+  [type='submit'], 
+  [role='button'] {
+    cursor: pointer;
+  }
+  button:disabled, 
+  [type='button']:disabled, 
+  [type='submit']:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* ============================================================

@@ -282,16 +282,14 @@ export default function TeacherDashboard() {
                       <div className="text-xs text-muted-foreground md:hidden mt-1">{new Date(lecture.createdAt).toLocaleDateString('vi-VN')}</div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        lecture.videoStatus === 'DONE'
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${lecture.videoStatus === 'DONE'
                           ? 'bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/15'
                           : lecture.videoStatus === 'FAILED'
-                          ? 'bg-destructive/10 text-destructive dark:bg-destructive/15'
-                          : 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          lecture.videoStatus === 'DONE' ? 'bg-emerald-500' : lecture.videoStatus === 'FAILED' ? 'bg-destructive' : 'bg-amber-500'
-                        }`} />
+                            ? 'bg-destructive/10 text-destructive dark:bg-destructive/15'
+                            : 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'
+                        }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${lecture.videoStatus === 'DONE' ? 'bg-emerald-500' : lecture.videoStatus === 'FAILED' ? 'bg-destructive' : 'bg-amber-500'
+                          }`} />
                         {lecture.videoStatus}
                       </span>
                     </td>
