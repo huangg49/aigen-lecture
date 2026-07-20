@@ -276,7 +276,7 @@ export default function StatisticsPage() {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [value.toLocaleString(), 'Người dùng']}
+                  formatter={(value: any) => [Number(value).toLocaleString(), 'Người dùng']}
                   contentStyle={{
                     borderRadius: '12px',
                     border: '1px solid var(--border)',
