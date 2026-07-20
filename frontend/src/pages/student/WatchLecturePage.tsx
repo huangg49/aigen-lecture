@@ -2,14 +2,16 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   Loader2, CheckCircle2, XCircle, Clock, Video, ArrowLeft,
-  HelpCircle, Send,
+  HelpCircle, Send, MessageCircle, Trash2, Reply,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
-  getVideoStatus, getQuizzes, submitAnswer,
+  getVideoStatus, getQuizzes, submitAnswer, getComments, addComment, deleteComment,
   type VideoStatus, type LectureResponse, type QuizResponse, type SubmitAnswerResponse,
+  type CommentResponse,
 } from '@/api/lectureApi'
 import axiosInstance from '@/api/axiosInstance'
+import { useAuthStore } from '@/store/authStore'
 
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -20,6 +22,191 @@ interface QuizState {
   selected: string | null          // đáp án đang chọn (chưa nộp)
   result: SubmitAnswerResponse | null  // kết quả sau khi nộp
   submitting: boolean
+}
+
+// ─── Comment Thread Component ──────────────────────────────────────────────────
+
+function CommentThread({
+  lectureId,
+}: {
+  lectureId: number
+}) {
+  const { user } = useAuthStore()
+  const [comments, setComments] = useState<CommentResponse[]>([])
+  const [loadingComments, setLoadingComments] = useState(true)
+  const [newComment, setNewComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [replyTo, setReplyTo] = useState<{ id: number; name: string } | null>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const fetchComments = async () => {
+    try {
+      const data = await getComments(lectureId)
+      setComments(data)
+    } catch {
+      // ignore
+    } finally {
+      setLoadingComments(false)
+    }
+  }
+
+  useEffect(() => { fetchComments() }, [lectureId])
+
+  const handleSubmit = async () => {
+    if (!newComment.trim() || submitting) return
+    setSubmitting(true)
+    try {
+      await addComment(lectureId, {
+        content: newComment.trim(),
+        parentCommentId: replyTo?.id ?? null,
+      })
+      setNewComment('')
+      setReplyTo(null)
+      await fetchComments()
+    } catch {
+      // ignore
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDelete = async (commentId: number) => {
+    if (!window.confirm('Xóa bình luận này?')) return
+    try {
+      await deleteComment(lectureId, commentId)
+      await fetchComments()
+    } catch {
+      // ignore
+    }
+  }
+
+  const handleReply = (id: number, name: string) => {
+    setReplyTo({ id, name })
+    setTimeout(() => inputRef.current?.focus(), 100)
+  }
+
+  const roleLabel = (role: string) =>
+    role === 'TEACHER' ? 'Giáo viên' : role === 'ADMIN' ? 'Admin' : 'Học sinh'
+
+  const roleBadge = (role: string) => {
+    if (role === 'TEACHER') return 'bg-primary/10 text-primary border-primary/20'
+    if (role === 'ADMIN') return 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+    return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+  }
+
+  const formatTime = (iso: string) => {
+    const d = new Date(iso)
+    return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  }
+
+  const SingleComment = ({ c, isReply = false }: { c: CommentResponse; isReply?: boolean }) => (
+    <div className={`flex gap-3 ${isReply ? 'ml-10 mt-3' : ''}`}>
+      <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white shadow-sm ${
+        c.userRole === 'TEACHER' ? 'bg-primary' : c.userRole === 'ADMIN' ? 'bg-amber-500' : 'bg-emerald-500'
+      }`}>
+        {c.userName.charAt(0).toUpperCase()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center flex-wrap gap-2 mb-1">
+          <span className="text-sm font-semibold text-foreground">{c.userName}</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${roleBadge(c.userRole)}`}>
+            {roleLabel(c.userRole)}
+          </span>
+          <span className="text-xs text-muted-foreground">{formatTime(c.createdAt)}</span>
+        </div>
+        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{c.content}</p>
+        <div className="flex gap-3 mt-1.5">
+          {!isReply && (
+            <button
+              onClick={() => handleReply(c.commentId, c.userName)}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+            >
+              <Reply size={12} /> Trả lời
+            </button>
+          )}
+          {(user?.id === String(c.userId) || user?.role === 'ADMIN') && (
+            <button
+              onClick={() => handleDelete(c.commentId)}
+              className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
+            >
+              <Trash2 size={12} /> Xóa
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+          <MessageCircle size={18} className="text-primary" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-foreground">Hỏi đáp & Bình luận</h2>
+          <p className="text-xs text-muted-foreground">Đặt câu hỏi hoặc thảo luận về bài giảng.</p>
+        </div>
+        <span className="ml-auto bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
+          {comments.reduce((acc, c) => acc + 1 + c.replies.length, 0)} bình luận
+        </span>
+      </div>
+
+      {/* Input box */}
+      <div className="bg-card border border-border/50 rounded-2xl p-4 space-y-3">
+        {replyTo && (
+          <div className="flex items-center gap-2 text-xs text-primary bg-primary/5 border border-primary/20 rounded-lg px-3 py-1.5">
+            <Reply size={12} /> Đang trả lời <strong>{replyTo.name}</strong>
+            <button onClick={() => setReplyTo(null)} className="ml-auto text-muted-foreground hover:text-foreground">✕</button>
+          </div>
+        )}
+        <textarea
+          ref={inputRef}
+          id="comment-input"
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSubmit() }}
+          placeholder={replyTo ? `Trả lời ${replyTo.name}...` : 'Viết bình luận hoặc câu hỏi... (Ctrl+Enter để gửi)'}
+          rows={3}
+          className="w-full resize-none bg-muted/30 border border-border/40 rounded-xl px-4 py-3 text-sm
+            focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/40 transition-all"
+        />
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            disabled={!newComment.trim() || submitting}
+            onClick={handleSubmit}
+            className="rounded-xl gap-2"
+          >
+            {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+            Gửi bình luận
+          </Button>
+        </div>
+      </div>
+
+      {/* Comment list */}
+      {loadingComments ? (
+        <div className="flex justify-center py-8">
+          <Loader2 size={24} className="animate-spin text-primary" />
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border/50 px-6 py-8 text-center text-sm text-muted-foreground">
+          Chưa có bình luận nào. Hãy là người đầu tiên đặt câu hỏi!
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {comments.map((c) => (
+            <div key={c.commentId} className="bg-card border border-border/50 rounded-2xl p-4">
+              <SingleComment c={c} />
+              {c.replies.map((r) => (
+                <SingleComment key={r.commentId} c={r} isReply />
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ─── Status Banner ─────────────────────────────────────────────────────────────
@@ -477,6 +664,13 @@ export default function WatchLecturePage() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Q&A Comment Section ────────────────────────────────────────────── */}
+      {pageState === 'ready' && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <CommentThread lectureId={Number(lectureId)} />
         </div>
       )}
     </div>

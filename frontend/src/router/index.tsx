@@ -11,6 +11,9 @@ import StudentLecturesPage from '@/pages/student/LecturesPage'
 import WatchLecturePage from '@/pages/student/WatchLecturePage'
 import { StudentLayout } from '@/components/layout/StudentLayout'
 import AdminDashboard from '@/pages/admin/DashboardPage'
+import AdminStatisticsPage from '@/pages/admin/StatisticsPage'
+import AdminSettingsPage from '@/pages/admin/SettingsPage'
+import AdminUsersPage from '@/pages/admin/UsersPage'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 
 /**
@@ -42,6 +45,8 @@ export default function AppRouter() {
                 <Route path="lectures" element={<TeacherLecturesPage />} />
                 <Route path="lectures/create" element={<CreateLecturePage />} />
                 <Route path="lectures/:lectureId" element={<WatchLecturePage />} />
+                <Route path="analytics" element={<AdminStatisticsPage />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
                 {/* Các sub-routes khác của teacher sẽ thêm vào đây */}
               </Routes>
             </TeacherLayout>
@@ -65,6 +70,9 @@ export default function AppRouter() {
             <AdminLayout>
               <Routes>
                 <Route path="" element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsersPage />} />
+                <Route path="statistics" element={<AdminStatisticsPage />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
               </Routes>
             </AdminLayout>
           </ProtectedRoute>

@@ -206,3 +206,53 @@ export async function submitAnswer(payload: SubmitAnswerRequest): Promise<Submit
   const res = await axiosInstance.post<SubmitAnswerResponse>('/interactions', payload)
   return res.data
 }
+
+// ─── Comment / Q&A Types ─────────────────────────────────────────────────────
+
+export interface CommentResponse {
+  commentId: number
+  parentCommentId: number | null
+  userId: number
+  userName: string
+  userRole: 'TEACHER' | 'STUDENT' | 'ADMIN'
+  content: string
+  createdAt: string
+  replies: CommentResponse[]
+}
+
+export interface CommentCreateRequest {
+  content: string
+  parentCommentId?: number | null
+}
+
+// ─── Comment API Calls ────────────────────────────────────────────────────────
+
+/**
+ * Lấy danh sách bình luận Q&A của một bài giảng (dạng nested thread).
+ */
+export async function getComments(lectureId: number): Promise<CommentResponse[]> {
+  const res = await axiosInstance.get<CommentResponse[]>(`/lectures/${lectureId}/comments`)
+  return res.data
+}
+
+/**
+ * Thêm bình luận mới hoặc reply vào một bài giảng.
+ */
+export async function addComment(
+  lectureId: number,
+  payload: CommentCreateRequest,
+): Promise<CommentResponse> {
+  const res = await axiosInstance.post<CommentResponse>(
+    `/lectures/${lectureId}/comments`,
+    payload,
+  )
+  return res.data
+}
+
+/**
+ * Xóa bình luận (chủ sở hữu hoặc Admin).
+ */
+export async function deleteComment(lectureId: number, commentId: number): Promise<void> {
+  await axiosInstance.delete(`/lectures/${lectureId}/comments/${commentId}`)
+}
+
