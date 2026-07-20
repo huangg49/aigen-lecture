@@ -6,7 +6,8 @@ import {
   Activity,
   Settings,
   LogOut,
-  Sparkles
+  Sparkles,
+  BarChart2
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
@@ -30,6 +31,11 @@ const navItems = [
     title: 'Nhật ký hệ thống',
     href: '/admin/logs',
     icon: Activity,
+  },
+  {
+    title: 'Thống kê & Phân tích',
+    href: '/admin/statistics',
+    icon: BarChart2,
   },
   {
     title: 'Cài đặt hệ thống',
@@ -59,7 +65,10 @@ export function AdminSidebar() {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1.5 custom-scrollbar">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.href
+          const isActive =
+            item.href === '/admin'
+              ? location.pathname === '/admin'
+              : location.pathname.startsWith(item.href)
           return (
             <Link
               key={item.href}
