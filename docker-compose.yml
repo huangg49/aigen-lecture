@@ -1,0 +1,58 @@
+services:
+  # ────────────────────────────────────────────────────────────────────
+  # PostgreSQL — database chính cho backend Spring Boot
+  # ────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    container_name: aigen-lecture-postgres
+    environment:
+      POSTGRES_DB: aigen_lecture
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aigen_lecture"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ────────────────────────────────────────────────────────────────────
+  # video-service — Node.js + Remotion render engine
+  # Có sẵn FFmpeg + Chromium headless bên trong image
+  # ────────────────────────────────────────────────────────────────────
+  video-service:
+    build:
+      context: ./video-service
+      dockerfile: Dockerfile
+    container_name: aigen-lecture-video-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      TTS_PROVIDER: "${TTS_PROVIDER:-mock}"
+      ELEVENLABS_API_KEY: "${ELEVENLABS_API_KEY:-}"
+      # Puppeteer/Chromium path (đã set trong Dockerfile, re-confirm ở đây)
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+      # ─── Supabase Storage ─────────────────────────────────────────
+      # Điền giá trị thật vào docker-compose.override.yml (gitignored)
+      # Xem hướng dẫn trong README.md
+      UPLOAD_TO_SUPABASE: "${UPLOAD_TO_SUPABASE:-false}"
+      SUPABASE_URL: "${SUPABASE_URL:-}"
+      SUPABASE_SERVICE_ROLE_KEY: "${SUPABASE_SERVICE_ROLE_KEY:-}"
+      SUPABASE_BUCKET_NAME: "${SUPABASE_BUCKET_NAME:-lecture-videos}"
+    volumes:
+      # Persist video files: container mất dữ liệu khi restart, volume giữ lại
+      - video-output:/app/out
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres-data:
+  video-output:
