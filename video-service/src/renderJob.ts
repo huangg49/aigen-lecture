@@ -8,7 +8,37 @@ import type { GenerateVideoRequest, RenderJob } from './types';
 
 /** In-memory job store (không cần DB ở giai đoạn này) */
 const jobs = new Map<string, RenderJob>();
-let activeJobs = 0;
+
+class TaskQueue {
+  private queue: (() => Promise<void>)[] = [];
+  private activeCount = 0;
+  private concurrencyLimit: number;
+
+  constructor(concurrencyLimit: number) {
+    this.concurrencyLimit = concurrencyLimit;
+  }
+
+  enqueue(task: () => Promise<void>) {
+    this.queue.push(task);
+    this.processNext();
+  }
+
+  private processNext() {
+    if (this.activeCount >= this.concurrencyLimit || this.queue.length === 0) {
+      return;
+    }
+    const task = this.queue.shift();
+    if (!task) return;
+    this.activeCount++;
+    task().finally(() => {
+      this.activeCount--;
+      this.processNext();
+    });
+  }
+}
+
+const maxConcurrent = parseInt(process.env.MAX_CONCURRENT_RENDERS ?? '1', 10);
+const renderQueue = new TaskQueue(maxConcurrent);
 
 /** Thư mục lưu video output */
 const OUTPUT_DIR = path.resolve(process.cwd(), 'out');
@@ -40,26 +70,9 @@ async function getBundlePath(): Promise<string> {
   return bundled;
 }
 
-/**
- * Tạo mới một render job và bắt đầu render BẤT ĐỒNG BỘ.
- * @returns jobId để client dùng để poll status
- */
 export async function createRenderJob(request: GenerateVideoRequest): Promise<string> {
   const jobId = uuidv4();
   const now = new Date();
-
-  if (activeJobs >= 3) {
-    const job: RenderJob = {
-      jobId,
-      lectureId: request.lectureId,
-      status: 'failed',
-      error: 'Server đang xử lý quá nhiều yêu cầu, vui lòng thử lại sau',
-      createdAt: now,
-      updatedAt: now,
-    };
-    jobs.set(jobId, job);
-    throw new Error('Too many concurrent renders');
-  }
 
   const job: RenderJob = {
     jobId,
@@ -70,8 +83,8 @@ export async function createRenderJob(request: GenerateVideoRequest): Promise<st
   };
   jobs.set(jobId, job);
 
-  // Bắt đầu render không đợi (fire-and-forget)
-  setImmediate(() => runRenderPipeline(jobId, request));
+  // Bắt đầu render không đợi (fire-and-forget), thông qua queue
+  renderQueue.enqueue(() => runRenderPipeline(jobId, request));
 
   return jobId;
 }
@@ -95,7 +108,6 @@ export function getAllJobs(): RenderJob[] {
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function runRenderPipeline(jobId: string, request: GenerateVideoRequest): Promise<void> {
-  activeJobs++;
   updateJob(jobId, { status: 'processing' });
 
   try {
@@ -174,8 +186,6 @@ async function runRenderPipeline(jobId: string, request: GenerateVideoRequest): 
     const errorMessage = err instanceof Error ? err.message : String(err);
     console.error(`[✗] Job ${jobId} failed:`, errorMessage);
     updateJob(jobId, { status: 'failed', error: errorMessage });
-  } finally {
-    activeJobs--;
   }
 }
 

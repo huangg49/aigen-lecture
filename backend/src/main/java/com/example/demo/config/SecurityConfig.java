@@ -19,16 +19,18 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Spring Security configuration.
  *
  * Các route công khai (không cần token):
- *   - POST /api/auth/login
- *   - POST /api/auth/register
- *   - GET  /api/lectures/{id}/video-status  (student polling)
- *   - Swagger UI
+ * - POST /api/auth/login
+ * - POST /api/auth/register
+ * - GET /api/lectures/{id}/video-status (student polling)
+ * - Swagger UI
  *
  * Tất cả route còn lại yêu cầu JWT hợp lệ.
  * RBAC theo role (TEACHER / STUDENT / ADMIN) được bảo vệ ở từng endpoint.
@@ -40,30 +42,32 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Auth endpoints — public
-                .requestMatchers("/api/auth/**").permitAll()
-                // Swagger UI và Error — public
-                .requestMatchers(
-                    "/swagger-ui.html", "/swagger-ui/**",
-                    "/v3/api-docs", "/v3/api-docs/**",
-                    "/error"
-                ).permitAll()
-                // Video status polling — student/teacher đều cần (có thể cần xem mà chưa login)
-                .requestMatchers(HttpMethod.GET, "/api/lectures/*/video-status").permitAll()
-                // Teacher-only: tạo, xóa bài giảng
-                .requestMatchers(HttpMethod.POST, "/api/lectures").hasRole("TEACHER")
-                .requestMatchers(HttpMethod.DELETE, "/api/lectures/**").hasRole("TEACHER")
-                // Tất cả request còn lại phải authenticated
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // Auth endpoints — public
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Swagger UI và Error — public
+                        .requestMatchers(
+                                "/swagger-ui.html", "/swagger-ui/**",
+                                "/v3/api-docs", "/v3/api-docs/**",
+                                "/error")
+                        .permitAll()
+                        // Video status polling — student/teacher đều cần (có thể cần xem mà chưa login)
+                        .requestMatchers(HttpMethod.GET, "/api/lectures/*/video-status").permitAll()
+                        // Teacher-only: tạo, xóa bài giảng
+                        .requestMatchers(HttpMethod.POST, "/api/lectures").hasRole("TEACHER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/lectures/**").hasRole("TEACHER")
+                        // Tất cả request còn lại phải authenticated
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -86,7 +90,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
