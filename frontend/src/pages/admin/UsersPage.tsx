@@ -21,7 +21,8 @@ interface UserResponse {
 // ── API helpers ───────────────────────────────────────────────────────────────
 
 async function fetchAllUsers(): Promise<UserResponse[]> {
-  const res = await axiosInstance.get<UserResponse[]>('/users')
+  // Thêm chữ /admin vào giữa
+  const res = await axiosInstance.get<UserResponse[]>('/admin/users') 
   return res.data
 }
 
@@ -31,7 +32,8 @@ async function patchUser(params: {
   role?: 'TEACHER' | 'STUDENT' | 'ADMIN'
 }): Promise<UserResponse> {
   const { userId, ...body } = params
-  const res = await axiosInstance.patch<UserResponse>(`/users/${userId}`, body)
+  // Thêm chữ /admin vào giữa
+  const res = await axiosInstance.patch<UserResponse>(`/admin/users/${userId}`, body)
   return res.data
 }
 
@@ -81,10 +83,12 @@ function ActionMenu({
   user,
   onToggleStatus,
   onChangeRole,
+  isDropUp = false,
 }: {
   user: UserResponse
   onToggleStatus: () => void
   onChangeRole: (role: 'TEACHER' | 'STUDENT') => void
+  isDropUp?: boolean
 }) {
   const [open, setOpen] = useState(false)
   if (user.role === 'ADMIN') return null
@@ -93,19 +97,28 @@ function ActionMenu({
     <div className="relative">
       <button
         id={`action-menu-${user.userId}`}
-        onClick={() => setOpen((o) => !o)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
         className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
         aria-label="Thao tác"
       >
         <MoreVertical size={15} />
       </button>
+      
       {open && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-20 w-52 rounded-xl border border-border/50 bg-card shadow-xl shadow-black/10 overflow-hidden py-1">
+          <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setOpen(false) }} />
+          
+          {/* Sửa class ở đây để menu tự động hất lên hoặc đổ xuống */}
+          <div className={`absolute right-0 z-20 w-52 rounded-xl border border-border/50 bg-card shadow-xl shadow-black/10 overflow-hidden py-1 ${
+            isDropUp ? 'bottom-full mb-1' : 'top-full mt-1'
+          }`}>
+            
             {/* Toggle status */}
             <button
-              onClick={() => { onToggleStatus(); setOpen(false) }}
+              onClick={(e) => { e.stopPropagation(); onToggleStatus(); setOpen(false) }}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-muted/50 ${
                 user.status === 'ACTIVE' ? 'text-destructive' : 'text-emerald-600'
               }`}
@@ -115,10 +128,11 @@ function ActionMenu({
                 : <><UserCheck size={15} /> Mở khoá tài khoản</>}
             </button>
             <div className="h-px bg-border/40 mx-3 my-1" />
+            
             {/* Change role */}
             {user.role !== 'TEACHER' && (
               <button
-                onClick={() => { onChangeRole('TEACHER'); setOpen(false) }}
+                onClick={(e) => { e.stopPropagation(); onChangeRole('TEACHER'); setOpen(false) }}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors text-foreground"
               >
                 <Shield size={15} className="text-primary" /> Đổi thành Giáo viên
@@ -126,7 +140,7 @@ function ActionMenu({
             )}
             {user.role !== 'STUDENT' && (
               <button
-                onClick={() => { onChangeRole('STUDENT'); setOpen(false) }}
+                onClick={(e) => { e.stopPropagation(); onChangeRole('STUDENT'); setOpen(false) }}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors text-foreground"
               >
                 <ShieldOff size={15} className="text-emerald-600" /> Đổi thành Học sinh
@@ -313,7 +327,7 @@ export default function UsersPage() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((user) => (
+                filtered.map((user, index) => (
                   <tr
                     key={user.userId}
                     className="hover:bg-muted/10 dark:hover:bg-muted/8 transition-colors group"
@@ -344,6 +358,7 @@ export default function UsersPage() {
                     <td className="px-5 py-4 text-right">
                       <ActionMenu
                         user={user}
+                        isDropUp={index > 0 && index >= filtered.length - 2}
                         onToggleStatus={() =>
                           patchMutation.mutate({
                             userId: user.userId,
