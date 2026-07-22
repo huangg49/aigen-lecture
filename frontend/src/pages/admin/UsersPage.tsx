@@ -21,7 +21,6 @@ interface UserResponse {
 // ── API helpers ───────────────────────────────────────────────────────────────
 
 async function fetchAllUsers(): Promise<UserResponse[]> {
-  // Thêm chữ /admin vào giữa
   const res = await axiosInstance.get<UserResponse[]>('/admin/users') 
   return res.data
 }
@@ -32,7 +31,6 @@ async function patchUser(params: {
   role?: 'TEACHER' | 'STUDENT' | 'ADMIN'
 }): Promise<UserResponse> {
   const { userId, ...body } = params
-  // Thêm chữ /admin vào giữa
   const res = await axiosInstance.patch<UserResponse>(`/admin/users/${userId}`, body)
   return res.data
 }
