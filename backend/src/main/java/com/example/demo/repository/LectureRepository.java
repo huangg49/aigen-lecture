@@ -60,6 +60,11 @@ public interface LectureRepository extends JpaRepository<Lecture, Long> {
            "ORDER BY l.views DESC")
     List<TopLectureResponse> findTopLectures(Pageable pageable);
 
+    long countByTeacher_UserId(Integer teacherId);
+
+    @Query("SELECT COALESCE(SUM(l.durationSeconds), 0) FROM Lecture l WHERE l.teacher.userId = :teacherId")
+    long sumDurationSecondsByTeacher_UserId(@Param("teacherId") Integer teacherId);
+
     @Query(value = "SELECT TO_CHAR(created_at, 'FMMM') AS month, " +
                    "COUNT(lecture_id) AS total, " +
                    "SUM(CASE WHEN original_source LIKE '%LLM%' OR original_source LIKE '%JSON%' THEN 1 ELSE 0 END) AS ai " +

@@ -34,6 +34,8 @@ export interface RenderJob {
   videoUrl?: string;
   /** Thông báo lỗi (có sau khi failed) */
   error?: string;
+  /** Thời lượng video tính bằng giây */
+  durationSeconds?: number;
   createdAt: Date;
   updatedAt: Date;
 }

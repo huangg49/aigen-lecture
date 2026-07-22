@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -25,6 +27,7 @@ public class LectureCreateRequest {
 
     /** Danh sách slides để render video. */
     @NotEmpty(message = "Slides không được để trống")
+    @jakarta.validation.Valid
     private List<SlideDto> slides;
 
     /**
@@ -43,6 +46,8 @@ public class LectureCreateRequest {
         private List<String> bulletPoints;
 
         @NotBlank
+        @JsonProperty("narrationText")
+        @JsonAlias({"script", "text", "narration", "audioText"})
         private String narrationText;
 
         private String imagePrompt;

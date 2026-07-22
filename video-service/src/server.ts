@@ -83,14 +83,17 @@ app.post('/generate-video', async (req, res) => {
       return;
     }
 
+    console.log(`[POST /generate-video] Received request for lectureId=${body.lectureId} with ${body.slides.length} slides.`);
+
     for (let i = 0; i < body.slides.length; i++) {
       const slide = body.slides[i];
-      if (!slide.title || !slide.narrationText || !Array.isArray(slide.bulletPoints)) {
+      if (!slide.title || !slide.narrationText?.trim() || !Array.isArray(slide.bulletPoints)) {
         res.status(400).json({
-          error: `Slide[${i}] thiếu field. Yêu cầu: title (string), bulletPoints (string[]), narrationText (string)`,
+          error: `Slide[${i}] thiếu field hoặc bị rỗng. Yêu cầu: title (string), bulletPoints (string[]), narrationText (string không rỗng)`,
         });
         return;
       }
+      console.log(`[POST /generate-video] Slide[${i}] - Title: "${slide.title}", Narration length: ${slide.narrationText.length} characters.`);
     }
 
     const jobId = await createRenderJob(body as GenerateVideoRequest);
@@ -138,6 +141,7 @@ app.get('/video-status/:jobId', (req, res) => {
     status: job.status,
     videoUrl: job.videoUrl ?? null,
     error: job.error ?? null,
+    durationSeconds: job.durationSeconds ?? null,
     createdAt: job.createdAt.toISOString(),
     updatedAt: job.updatedAt.toISOString(),
   });

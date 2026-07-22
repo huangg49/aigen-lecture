@@ -9,4 +9,9 @@ public interface ClassStudentRepository extends JpaRepository<ClassStudent, Clas
     List<ClassStudent> findByClassEntity_ClassId(Integer classId);
 
     List<ClassStudent> findByStudent_UserId(Integer studentId);
+
+    long countByStudent_UserId(Integer studentId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT cs.student.userId) FROM ClassStudent cs WHERE cs.classEntity.teacher.userId = :teacherId")
+    long countUniqueStudentsByTeacherId(@org.springframework.data.repository.query.Param("teacherId") Integer teacherId);
 }

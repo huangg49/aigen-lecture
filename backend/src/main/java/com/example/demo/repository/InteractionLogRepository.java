@@ -28,4 +28,13 @@ public interface InteractionLogRepository extends JpaRepository<InteractionLog, 
                    "GROUP BY EXTRACT(ISODOW FROM submitted_at) " +
                    "ORDER BY EXTRACT(ISODOW FROM submitted_at)", nativeQuery = true)
     List<Object[]> getWeeklyInteractions();
+
+    @Query("SELECT COUNT(DISTINCT l.aiElement.lecture.lectureId) FROM InteractionLog l WHERE l.student.userId = :studentId")
+    Long countWatchedVideosByStudentId(@org.springframework.data.repository.query.Param("studentId") Integer studentId);
+
+    @Query("SELECT COALESCE(AVG(CASE WHEN l.isCorrect = true THEN 100.0 ELSE 0.0 END), 0.0) FROM InteractionLog l WHERE l.student.userId = :studentId")
+    Double getAverageScoreByStudentId(@org.springframework.data.repository.query.Param("studentId") Integer studentId);
+
+    @Query("SELECT COALESCE(AVG(CASE WHEN l.isCorrect = true THEN 100.0 ELSE 0.0 END), 0.0) FROM InteractionLog l WHERE l.aiElement.lecture.teacher.userId = :teacherId")
+    Double getCorrectRateByTeacherId(@org.springframework.data.repository.query.Param("teacherId") Integer teacherId);
 }

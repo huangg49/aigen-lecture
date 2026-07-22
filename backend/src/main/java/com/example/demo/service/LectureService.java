@@ -210,7 +210,12 @@ public class LectureService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(body), headers);
+            String payloadString = objectMapper.writeValueAsString(body);
+            
+            // Log explicitly for debugging the exact JSON sent to video-service
+            log.info("Lecture {} → Sending POST to {}: {}", lectureId, videoServiceUrl + "/generate-video", payloadString);
+            
+            HttpEntity<String> httpEntity = new HttpEntity<>(payloadString, headers);
 
             String response = restTemplate.postForObject(
                     videoServiceUrl + "/generate-video", httpEntity, String.class);
@@ -278,6 +283,9 @@ public class LectureService {
                     case "done" -> {
                         lecture.setVideoStatus(VideoStatus.DONE);
                         lecture.setVideoUrl(json.get("videoUrl").asText());
+                        if (json.has("durationSeconds") && !json.get("durationSeconds").isNull()) {
+                            lecture.setDurationSeconds(json.get("durationSeconds").asInt());
+                        }
                         lectureRepository.save(lecture);
                         log.info("Lecture {} → video DONE: {}", lecture.getLectureId(), lecture.getVideoUrl());
                     }

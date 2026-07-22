@@ -3,53 +3,11 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getLectures, deleteLecture, updateLecture } from '@/api/lectureApi'
+import { getTeacherDashboardStats } from '@/api/dashboardApi'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { motion, type Variants } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
-
-const stats = [
-  {
-    title: 'Tổng số bài giảng',
-    value: '12',
-    icon: BookOpen,
-    trend: '+2 tuần này',
-    trendUp: true,
-    color: 'text-primary',
-    bg: 'bg-primary/10 dark:bg-primary/15',
-    glow: 'dark:shadow-primary/20',
-  },
-  {
-    title: 'Học sinh tham gia',
-    value: '348',
-    icon: Users,
-    trend: '+12% tuần này',
-    trendUp: true,
-    color: 'text-chart-1',
-    bg: 'bg-chart-1/10 dark:bg-chart-1/15',
-    glow: 'dark:shadow-chart-1/20',
-  },
-  {
-    title: 'Tỉ lệ làm đúng',
-    value: '76%',
-    icon: CheckCircle,
-    trend: '+4% so với trước',
-    trendUp: true,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-500/10 dark:bg-emerald-500/15',
-    glow: 'dark:shadow-emerald-500/20',
-  },
-  {
-    title: 'Giờ giảng dạy',
-    value: '24h',
-    icon: Clock,
-    trend: 'Ổn định',
-    trendUp: true,
-    color: 'text-amber-500',
-    bg: 'bg-amber-500/10 dark:bg-amber-500/15',
-    glow: 'dark:shadow-amber-500/20',
-  }
-]
 
 // Framer Motion variants
 const containerVariants: Variants = {
@@ -68,6 +26,11 @@ const itemVariants: Variants = {
 export default function TeacherDashboard() {
   const queryClient = useQueryClient()
   const { user } = useAuthStore()
+
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['dashboard', 'teacher'],
+    queryFn: getTeacherDashboardStats
+  })
 
   const { data: lecturesPage, isLoading } = useQuery({
     queryKey: ['lectures', 'dashboard'],
@@ -99,6 +62,49 @@ export default function TeacherDashboard() {
 
   const lectures = lecturesPage?.content || []
   const firstName = user?.name?.split(' ').pop() || 'Thầy/Cô'
+
+  const stats = [
+    {
+      title: 'Tổng số bài giảng',
+      value: dashboardStats?.totalLectures.toString() || '0',
+      icon: BookOpen,
+      trend: 'Toàn thời gian',
+      trendUp: true,
+      color: 'text-primary',
+      bg: 'bg-primary/10 dark:bg-primary/15',
+      glow: 'dark:shadow-primary/20',
+    },
+    {
+      title: 'Học sinh tham gia',
+      value: dashboardStats?.totalStudents.toString() || '0',
+      icon: Users,
+      trend: 'Unique students',
+      trendUp: true,
+      color: 'text-chart-1',
+      bg: 'bg-chart-1/10 dark:bg-chart-1/15',
+      glow: 'dark:shadow-chart-1/20',
+    },
+    {
+      title: 'Tỉ lệ làm đúng',
+      value: dashboardStats ? `${Math.round(dashboardStats.correctRate)}%` : '0%',
+      icon: CheckCircle,
+      trend: 'Trung bình',
+      trendUp: true,
+      color: 'text-emerald-500',
+      bg: 'bg-emerald-500/10 dark:bg-emerald-500/15',
+      glow: 'dark:shadow-emerald-500/20',
+    },
+    {
+      title: 'Giờ giảng dạy',
+      value: dashboardStats ? (dashboardStats.totalDurationSeconds >= 3600 ? `${Math.floor(dashboardStats.totalDurationSeconds / 3600)}h ${Math.round((dashboardStats.totalDurationSeconds % 3600) / 60)}m` : `${Math.round(dashboardStats.totalDurationSeconds / 60)}m`) : '0m',
+      icon: Clock,
+      trend: 'Tổng thời lượng',
+      trendUp: true,
+      color: 'text-amber-500',
+      bg: 'bg-amber-500/10 dark:bg-amber-500/15',
+      glow: 'dark:shadow-amber-500/20',
+    }
+  ]
 
   return (
     <motion.div
@@ -198,8 +204,8 @@ export default function TeacherDashboard() {
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Bài giảng mới</p>
               <BookOpen size={16} className="text-primary" />
             </div>
-            <p className="text-4xl font-bold text-foreground">12</p>
-            <p className="text-sm text-emerald-500 font-medium mt-1">+2 tuần này</p>
+            <p className="text-4xl font-bold text-foreground">{dashboardStats?.totalLectures || 0}</p>
+            <p className="text-sm text-emerald-500 font-medium mt-1">Toàn thời gian</p>
           </div>
         </motion.div>
       </div>

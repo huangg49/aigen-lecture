@@ -1,6 +1,8 @@
 package com.example.demo.dto;
 
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
@@ -20,6 +22,8 @@ public class LectureGenerateResponse {
     public static class SlideDto {
         private String title;
         private List<String> bulletPoints;
+        @JsonProperty("narrationText")
+        @JsonAlias({"script", "text", "narration", "audioText"})
         private String narrationText;
         private String imagePrompt;
     }

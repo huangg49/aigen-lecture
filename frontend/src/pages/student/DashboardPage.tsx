@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { PlaySquare, BookOpen, Sparkles, Clock, TrendingUp, RefreshCw, ArrowRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { getStudentLectures } from '@/api/lectureApi'
+import { getStudentDashboardStats } from '@/api/dashboardApi'
 import { motion, type Variants } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 
@@ -20,6 +21,11 @@ export default function StudentDashboard() {
   const { data: lecturesPage, isLoading } = useQuery({
     queryKey: ['studentLectures'],
     queryFn: () => getStudentLectures({ size: 3 }),
+  })
+
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['dashboard', 'student'],
+    queryFn: getStudentDashboardStats
   })
 
   const lectures = lecturesPage?.content || []
@@ -47,7 +53,7 @@ export default function StudentDashboard() {
           {
             icon: BookOpen,
             label: 'Khóa học đang học',
-            value: '3',
+            value: dashboardStats?.enrolledClasses.toString() || '0',
             color: 'text-primary',
             bg: 'bg-primary/10 dark:bg-primary/15',
             sub: 'Đang tiến hành',
@@ -56,16 +62,16 @@ export default function StudentDashboard() {
           {
             icon: PlaySquare,
             label: 'Video đã xem',
-            value: '12',
+            value: dashboardStats?.watchedVideos.toString() || '0',
             color: 'text-violet-500',
             bg: 'bg-violet-500/10 dark:bg-violet-500/15',
-            sub: '+3 tuần này',
+            sub: 'Tất cả thời gian',
             subColor: 'text-emerald-500',
           },
           {
             icon: TrendingUp,
             label: 'Điểm trung bình',
-            value: '8.5',
+            value: dashboardStats ? `${Math.round(dashboardStats.averageScore)}%` : '0%',
             color: 'text-emerald-500',
             bg: 'bg-emerald-500/10 dark:bg-emerald-500/15',
             sub: 'Xếp hạng tốt',

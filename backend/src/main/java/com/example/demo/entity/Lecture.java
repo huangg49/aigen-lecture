@@ -73,6 +73,12 @@ public class Lecture {
     private String videoUrl;
 
     /**
+     * Thời lượng video tính bằng giây (được trả về từ video-service sau khi render).
+     */
+    @Column(name = "duration_seconds")
+    private Integer durationSeconds;
+
+    /**
      * Trạng thái render video.
      * Default PENDING — chưa gửi yêu cầu render.
      */

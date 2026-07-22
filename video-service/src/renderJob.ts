@@ -180,6 +180,7 @@ async function runRenderPipeline(jobId: string, request: GenerateVideoRequest): 
       status: 'done',
       videoPath: outputPath,
       videoUrl,
+      durationSeconds: Math.round(totalFrames / fps),
     });
 
     console.log(`[✓] Job ${jobId} done → ${videoUrl}`);
