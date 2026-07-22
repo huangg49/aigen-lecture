@@ -29,6 +29,14 @@ public class Lecture {
     @Column(name = "lecture_id")
     private Long lectureId;
 
+    /** Lượt xem bài giảng. Mặc định là 0. */
+    @Column(name = "views", nullable = false, columnDefinition = "bigint default 0")
+    private Long views = 0L;
+
+    /** Đánh giá trung bình của bài giảng (ví dụ: 4.8). Mặc định là 0.0. */
+    @Column(name = "rating", nullable = false, columnDefinition = "double precision default 0.0")
+    private Double rating = 0.0;
+
     /**
      * Teacher sở hữu bài giảng — FK tới User.
      * Dùng @ManyToOne lazy để tránh N+1 query.

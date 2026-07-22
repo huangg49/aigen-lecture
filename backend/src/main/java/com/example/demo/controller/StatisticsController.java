@@ -2,11 +2,15 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.StatisticsChartsResponse;
 import com.example.demo.dto.StatisticsOverviewResponse;
+import com.example.demo.dto.TopLectureResponse;
 import com.example.demo.service.StatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,5 +50,12 @@ public class StatisticsController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StatisticsChartsResponse> getCharts() {
         return ResponseEntity.ok(statisticsService.getCharts());
+    }
+
+    @Operation(summary = "Lấy top 5 bài giảng nổi bật", security = @SecurityRequirement(name = "bearerAuth"))
+    @GetMapping("/top-lectures")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TopLectureResponse>> getTopLectures() {
+        return ResponseEntity.ok(statisticsService.getTopLectures());
     }
 }
