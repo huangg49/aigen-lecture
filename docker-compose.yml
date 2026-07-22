@@ -1,7 +1,13 @@
+<<<<<<< HEAD
+services:
+  # ────────────────────────────────────────────────────────────────────
+  # PostgreSQL — database chính cho backend Spring Boot
+=======
 
 services:
   # ────────────────────────────────────────────────────────────────────
   # PostgreSQL — Main database for Spring Boot backend
+>>>>>>> dace10adea590ba08a831823dc37fca784668804
   # ────────────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16
@@ -11,8 +17,12 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
+<<<<<<< HEAD
+      - "5435:5432"
+=======
       # Bound to localhost for security on EC2. Backend connects via internal network.
       - "127.0.0.1:5435:5432"
+>>>>>>> dace10adea590ba08a831823dc37fca784668804
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -20,6 +30,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+<<<<<<< HEAD
+
+  # ────────────────────────────────────────────────────────────────────
+  # video-service — Node.js + Remotion render engine
+  # Có sẵn FFmpeg + Chromium headless bên trong image
+=======
     restart: unless-stopped
 
   # ────────────────────────────────────────────────────────────────────
@@ -47,6 +63,7 @@ services:
 
   # ────────────────────────────────────────────────────────────────────
   # Video Service — Node.js + Remotion render engine
+>>>>>>> dace10adea590ba08a831823dc37fca784668804
   # ────────────────────────────────────────────────────────────────────
   video-service:
     build:
@@ -59,11 +76,27 @@ services:
       PORT: "3001"
       TTS_PROVIDER: "${TTS_PROVIDER:-mock}"
       ELEVENLABS_API_KEY: "${ELEVENLABS_API_KEY:-}"
+<<<<<<< HEAD
+      # Puppeteer/Chromium path (đã set trong Dockerfile, re-confirm ở đây)
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+      # ─── Supabase Storage ─────────────────────────────────────────
+      # Điền giá trị thật vào docker-compose.override.yml (gitignored)
+      # Xem hướng dẫn trong README.md
+=======
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+>>>>>>> dace10adea590ba08a831823dc37fca784668804
       UPLOAD_TO_SUPABASE: "${UPLOAD_TO_SUPABASE:-false}"
       SUPABASE_URL: "${SUPABASE_URL:-}"
       SUPABASE_SERVICE_ROLE_KEY: "${SUPABASE_SERVICE_ROLE_KEY:-}"
       SUPABASE_BUCKET_NAME: "${SUPABASE_BUCKET_NAME:-lecture-videos}"
+<<<<<<< HEAD
+    volumes:
+      # Persist video files: container mất dữ liệu khi restart, volume giữ lại
+      - video-output:/app/out
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/health || exit 1"]
+=======
       MAX_CONCURRENT_RENDERS: "${MAX_CONCURRENT_RENDERS:-1}"
     volumes:
       - video-output:/app/out
@@ -72,10 +105,16 @@ services:
     healthcheck:
       # FIX: Uses native Node.js fetch instead of curl, which isn't installed in slim images
       test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3001/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))\""]
+>>>>>>> dace10adea590ba08a831823dc37fca784668804
       interval: 30s
       timeout: 10s
       retries: 3
 
+<<<<<<< HEAD
+volumes:
+  postgres-data:
+  video-output:
+=======
   # ────────────────────────────────────────────────────────────────────
   # Frontend — React/Vite (served via Nginx)
   # ────────────────────────────────────────────────────────────────────
@@ -96,3 +135,4 @@ services:
 volumes:
   postgres-data:
   video-output:
+>>>>>>> dace10adea590ba08a831823dc37fca784668804

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AuthResponse;
+import com.example.demo.dto.ChangePasswordRequest;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.entity.User;
@@ -9,6 +10,9 @@ import com.example.demo.exception.BadRequestException;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.security.UserPrincipal;
+import com.example.demo.service.EmailService;
+import com.example.demo.dto.ForgotPasswordRequest;
+import com.example.demo.dto.ResetPasswordRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,6 +35,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
 
     /**
      * POST /api/auth/register
@@ -91,5 +96,72 @@ public class AuthController {
                 user.getEmail(),
                 user.getRole()
         ));
+    }
+
+    /**
+     * POST /api/auth/change-password
+     * Đổi mật khẩu cho user đang đăng nhập (Yêu cầu JWT)
+     */
+    @Operation(summary = "Đổi mật khẩu (yêu cầu đang đăng nhập)")
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal UserPrincipal principal) {
+
+        User user = userRepository.findById(principal.getUserId())
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy người dùng"));
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new BadRequestException("Mật khẩu cũ không chính xác");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Đổi mật khẩu thành công");
+    }
+
+    /**
+     * POST /api/auth/forgot-password
+     * Gửi yêu cầu quên mật khẩu, sinh token reset.
+     */
+    @Operation(summary = "Yêu cầu khôi phục mật khẩu qua email")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy tài khoản với email này"));
+
+        String resetToken = java.util.UUID.randomUUID().toString();
+        user.setResetToken(resetToken);
+        user.setTokenExpiryDate(java.time.LocalDateTime.now().plusMinutes(15));
+        userRepository.save(user);
+
+        emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+
+        return ResponseEntity.ok("Đã gửi hướng dẫn khôi phục mật khẩu qua email.");
+    }
+
+    /**
+     * POST /api/auth/reset-password
+     * Đổi mật khẩu mới bằng token.
+     */
+    @Operation(summary = "Xác nhận đổi mật khẩu mới bằng token")
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        User user = userRepository.findByResetToken(request.token())
+                .orElseThrow(() -> new BadRequestException("Mã xác thực không hợp lệ"));
+
+        if (user.getTokenExpiryDate() == null || user.getTokenExpiryDate().isBefore(java.time.LocalDateTime.now())) {
+            throw new BadRequestException("Mã xác thực đã hết hạn");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        
+        // Xóa token sau khi dùng xong
+        user.setResetToken(null);
+        user.setTokenExpiryDate(null);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Mật khẩu đã được thay đổi thành công.");
     }
 }

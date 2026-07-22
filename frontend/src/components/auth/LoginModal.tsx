@@ -327,9 +327,18 @@ function ForgotForm({ onBack, isActive }: { onBack: () => void; isActive?: boole
     resolver: zodResolver(forgotSchema),
   });
 
-  const onSubmit = async () => {
-    // TODO: Call forgot password API
-    setSent(true);
+  const onSubmit = async (data: ForgotForm) => {
+    try {
+      // Gọi thẳng API tới Backend Spring Boot
+      // (Bạn nhớ kiểm tra lại URL "/auth/forgot-password" xem đã khớp với Controller Java chưa nhé)
+      await axiosInstance.post("/auth/forgot-password", data); 
+      
+      // Nếu thành công, chuyển sang giao diện "Kiểm tra email"
+      setSent(true);
+    } catch (error: any) {
+      console.error("Lỗi khi gửi mail quên mật khẩu:", error);
+      alert(error.response?.data?.message || "Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại.");
+    }
   };
 
   if (sent) {

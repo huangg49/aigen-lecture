@@ -15,6 +15,7 @@ import AdminStatisticsPage from '@/pages/admin/StatisticsPage'
 import AdminSettingsPage from '@/pages/admin/SettingsPage'
 import AdminUsersPage from '@/pages/admin/UsersPage'
 import { AdminLayout } from '@/components/layout/AdminLayout'
+import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
 
 /**
  * ProtectedRoute — guards routes by authentication status and role.
@@ -36,6 +37,8 @@ export default function AppRouter() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Navigate to="/?login=true" />} />
+
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route path="/teacher/*" element={
           <ProtectedRoute role="TEACHER">
