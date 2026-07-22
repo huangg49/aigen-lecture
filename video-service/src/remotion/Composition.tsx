@@ -1,7 +1,7 @@
 import React from 'react';
 import { Composition, AbsoluteFill, Audio, staticFile } from 'remotion';
 import { TransitionSeries, linearTiming } from '@remotion/transitions';
-import { fade } from '@remotion/transitions/fade';
+import { slide as slideTransition } from '@remotion/transitions/slide';
 import { SlideScene } from './SlideScene';
 import type { Slide } from '../types';
 
@@ -33,8 +33,8 @@ const SlideComposition = ({
           </TransitionSeries.Sequence>
           {i < slides.length - 1 && (
             <TransitionSeries.Transition
-              presentation={fade()}
-              timing={linearTiming({ durationInFrames: 15 })}
+              presentation={slideTransition()}
+              timing={linearTiming({ durationInFrames: 30 })}
             />
           )}
         </React.Fragment>
