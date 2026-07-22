@@ -3,21 +3,19 @@ package com.example.demo.service;
 import com.example.demo.dto.StatisticsChartsResponse;
 import com.example.demo.dto.StatisticsChartsResponse.*;
 import com.example.demo.dto.StatisticsOverviewResponse;
+import com.example.demo.dto.TopLectureResponse;
 import com.example.demo.entity.UserRole;
 import com.example.demo.repository.InteractionLogRepository;
 import com.example.demo.repository.LectureRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.CostLogRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Service cung cấp dữ liệu thống kê cho Admin Dashboard.
- *
- * Hiện tại đang trả về dữ liệu mock để kịp tiến độ demo.
- * TODO: Thay thế từng phần bằng query thực từ Repository sau demo.
- */
 @Service
 @RequiredArgsConstructor
 public class StatisticsService {
@@ -25,21 +23,21 @@ public class StatisticsService {
     private final UserRepository userRepository;
     private final LectureRepository lectureRepository;
     private final InteractionLogRepository interactionLogRepository;
+    private final CostLogRepository costLogRepository;
 
-    /**
-     * Tổng quan KPI — dùng cho các thẻ KPI ở đầu trang thống kê.
-     */
     public StatisticsOverviewResponse getOverview() {
-        // --- LIVE QUERIES (có thể dùng ngay) ---
+        // --- LIVE QUERIES ---
         long totalUsers = userRepository.count();
         long totalStudents = userRepository.countByRole(UserRole.STUDENT);
         long totalTeachers = userRepository.countByRole(UserRole.TEACHER);
         long totalLectures = lectureRepository.count();
+        long totalInteractions = interactionLogRepository.count();
 
-        // --- MOCK DATA (thay bằng query thực sau demo) ---
-        long totalAiGeneratedLectures = Math.round(totalLectures * 0.95); // ~95% là AI-generated
-        long totalInteractions = 24_680L;
-        double llmCostUsd = 142.50;
+        // Lấy số liệu thật từ DB
+        double llmCostUsd = costLogRepository.getTotalCost(); 
+
+        // --- MOCK DATA ---
+        long totalAiGeneratedLectures = Math.round(totalLectures * 0.95);
         String serverUptime = "99.9%";
 
         return new StatisticsOverviewResponse(
@@ -54,61 +52,58 @@ public class StatisticsService {
         );
     }
 
-    /**
-     * Dữ liệu biểu đồ — dùng cho các charts trong trang thống kê.
-     * Hiện tại là mock data cho demo; replace bằng native query sau.
-     */
     public StatisticsChartsResponse getCharts() {
-        // Mock: Tăng trưởng người dùng theo tháng
-        List<MonthlyUserGrowth> userGrowth = List.of(
-                new MonthlyUserGrowth("T1", 82, 12),
-                new MonthlyUserGrowth("T2", 120, 18),
-                new MonthlyUserGrowth("T3", 155, 22),
-                new MonthlyUserGrowth("T4", 190, 25),
-                new MonthlyUserGrowth("T5", 248, 31),
-                new MonthlyUserGrowth("T6", 310, 38),
-                new MonthlyUserGrowth("T7", 405, 44),
-                new MonthlyUserGrowth("T8", 520, 52),
-                new MonthlyUserGrowth("T9", 680, 60),
-                new MonthlyUserGrowth("T10", 820, 71),
-                new MonthlyUserGrowth("T11", 980, 85),
-                new MonthlyUserGrowth("T12", 1160, 98)
-        );
+        // 1. Tạo sẵn khung 12 tháng mặc định bằng 0
+        List<MonthlyUserGrowth> userGrowth = new java.util.ArrayList<>();
+        List<MonthlyLectureCount> lectureGrowth = new java.util.ArrayList<>();
+        for (int i = 1; i <= 12; i++) {
+            userGrowth.add(new MonthlyUserGrowth("T" + i, 0, 0));
+            lectureGrowth.add(new MonthlyLectureCount("T" + i, 0, 0));
+        }
 
-        // Mock: Bài giảng được tạo theo tháng
-        List<MonthlyLectureCount> lectureGrowth = List.of(
-                new MonthlyLectureCount("T1", 15, 10),
-                new MonthlyLectureCount("T2", 28, 22),
-                new MonthlyLectureCount("T3", 42, 38),
-                new MonthlyLectureCount("T4", 60, 55),
-                new MonthlyLectureCount("T5", 88, 82),
-                new MonthlyLectureCount("T6", 110, 105),
-                new MonthlyLectureCount("T7", 145, 140),
-                new MonthlyLectureCount("T8", 180, 172),
-                new MonthlyLectureCount("T9", 225, 218),
-                new MonthlyLectureCount("T10", 270, 264),
-                new MonthlyLectureCount("T11", 320, 312),
-                new MonthlyLectureCount("T12", 380, 370)
-        );
+        // 2. Lấy dữ liệu Tăng trưởng User từ DB và đắp đè vào khung
+        for (Object[] row : userRepository.getUserGrowth()) {
+            int monthIndex = Integer.parseInt(row[0].toString()) - 1; // Tháng 7 -> index 6
+            int students = ((Number) row[1]).intValue();
+            int teachers = ((Number) row[2]).intValue();
+            userGrowth.set(monthIndex, new MonthlyUserGrowth("T" + (monthIndex + 1), students, teachers));
+        }
 
-        // Mock: Tương tác trong tuần
-        List<WeeklyInteraction> weeklyInteractions = List.of(
-                new WeeklyInteraction("T2", 120, 85, 45),
-                new WeeklyInteraction("T3", 185, 120, 60),
-                new WeeklyInteraction("T4", 145, 95, 55),
-                new WeeklyInteraction("T5", 220, 160, 72),
-                new WeeklyInteraction("T6", 198, 145, 80),
-                new WeeklyInteraction("T7", 260, 190, 95),
-                new WeeklyInteraction("CN", 170, 110, 50)
-        );
+        // 3. Lấy dữ liệu Bài giảng từ DB và đắp đè vào khung
+        for (Object[] row : lectureRepository.getLectureGrowth()) {
+            int monthIndex = Integer.parseInt(row[0].toString()) - 1;
+            int total = ((Number) row[1]).intValue();
+            int aiGenerated = ((Number) row[2]).intValue();
+            lectureGrowth.set(monthIndex, new MonthlyLectureCount("T" + (monthIndex + 1), total, aiGenerated));
+        }
 
-        // Mock: Phân bố vai trò
+        // 4. Lấy dữ liệu Tương tác (giữ nguyên vì 7 ngày tuần nào cũng đủ hoặc tự co giãn)
+        List<WeeklyInteraction> weeklyInteractions = interactionLogRepository.getWeeklyInteractions().stream()
+            .map(row -> new WeeklyInteraction(
+                row[0].toString(),
+                ((Number) row[1]).intValue(),
+                ((Number) row[2]).intValue(),
+                ((Number) row[3]).intValue()
+            )).toList();
+
+        // 5. Phân bố vai trò
+        long totalUsers = userRepository.count();
+        long totalStudents = userRepository.countByRole(UserRole.STUDENT);
+        long totalTeachers = userRepository.countByRole(UserRole.TEACHER);
+        
         List<RoleDistribution> roleDistribution = List.of(
-                new RoleDistribution("Học sinh", 1160, "#10b981"),
-                new RoleDistribution("Giáo viên", 98, "#8b5cf6"),
-                new RoleDistribution("Admin", 5, "#f59e0b")
+                new RoleDistribution("Học sinh", totalStudents, "#10b981"),
+                new RoleDistribution("Giáo viên", totalTeachers, "#8b5cf6"),
+                new RoleDistribution("Admin", totalUsers - totalStudents - totalTeachers, "#f59e0b")
         );
 
         return new StatisticsChartsResponse(userGrowth, lectureGrowth, weeklyInteractions, roleDistribution);
+    }
+    
+    /**
+     * Lấy top 5 bài giảng nổi bật từ DB phục vụ cho Analytics Dashboard
+     */
+    public List<TopLectureResponse> getTopLectures() {
+        return lectureRepository.findTopLectures(PageRequest.of(0, 5));
     }
 }

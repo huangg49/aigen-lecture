@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.TopLectureResponse;
 import com.example.demo.entity.Lecture;
 import com.example.demo.entity.VideoStatus;
 import org.springframework.data.domain.Page;
@@ -49,4 +50,22 @@ public interface LectureRepository extends JpaRepository<Lecture, Long> {
      */
     @Query("SELECT l FROM Lecture l WHERE l.videoStatus IN :statuses AND l.videoJobId IS NOT NULL")
     List<Lecture> findByVideoStatusIn(@Param("statuses") List<VideoStatus> statuses);
+
+    /**
+     * Lấy danh sách Top 10 bài giảng được xem nhiều nhất (theo views).
+     * Sử dụng DTO projection để chỉ lấy các field cần thiết.
+     */
+    @Query("SELECT new com.example.demo.dto.TopLectureResponse(l.lectureId, l.title, l.teacher.name, l.views, l.rating) " +
+           "FROM Lecture l " +
+           "ORDER BY l.views DESC")
+    List<TopLectureResponse> findTopLectures(Pageable pageable);
+
+    @Query(value = "SELECT TO_CHAR(created_at, 'FMMM') AS month, " +
+                   "COUNT(lecture_id) AS total, " +
+                   "SUM(CASE WHEN original_source LIKE '%LLM%' OR original_source LIKE '%JSON%' THEN 1 ELSE 0 END) AS ai " +
+                   "FROM lectures " +
+                   "WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE) " +
+                   "GROUP BY EXTRACT(MONTH FROM created_at), TO_CHAR(created_at, 'FMMM') " +
+                   "ORDER BY EXTRACT(MONTH FROM created_at)", nativeQuery = true)
+    List<Object[]> getLectureGrowth();
 }
