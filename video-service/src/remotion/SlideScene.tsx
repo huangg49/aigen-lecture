@@ -7,7 +7,11 @@ import {
   useVideoConfig,
   Audio,
   Img,
+  staticFile,
 } from 'remotion';
+import { Lottie } from '@remotion/lottie';
+import spiralData from '../../public/spiral.json';
+import heartbeatData from '../../public/heartbeat.json';
 import type { Slide } from '../types';
 import { Avatar } from './Avatar';
 
@@ -28,7 +32,13 @@ export const SlideScene: React.FC<{ slide: Slide; isActive: boolean }> = ({
   isActive,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
+
+  // Highlight logic calculations
+  const titleReadingFrames = fps * 2; // Giả sử đọc xong title mất khoảng 2 giây
+  const nPoints = slide.bulletPoints.length;
+  const remainingFrames = Math.max(0, durationInFrames - titleReadingFrames);
+  const framesPerPoint = nPoints > 0 ? remainingFrames / nPoints : remainingFrames;
 
   const titleOpacity = interpolate(frame, [0, 20], [0, 1], {
     extrapolateLeft: 'clamp',
@@ -49,10 +59,24 @@ export const SlideScene: React.FC<{ slide: Slide; isActive: boolean }> = ({
   const floatY2 = Math.cos(frame / 25) * 25;
   const floatX2 = Math.sin(frame / 35) * 20;
 
+  // Dynamic background positions using sine waves for smooth loops
+  const bgX = interpolate(Math.sin(frame / 60), [-1, 1], [0, 100]);
+  const bgY = interpolate(Math.cos(frame / 60), [-1, 1], [0, 100]);
+
+  // Typewriter effect for title
+  const charsToShow = Math.floor(
+    interpolate(frame, [0, 45], [0, slide.title.length], {
+      extrapolateRight: 'clamp',
+    })
+  );
+  const titleToDisplay = slide.title.slice(0, charsToShow);
+
   return (
     <AbsoluteFill
       style={{
-        background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e3a5f 100%)',
+        background: 'linear-gradient(135deg, #1e1b4b, #312e81, #1e3a5f, #2e1065)',
+        backgroundSize: '400% 400%',
+        backgroundPosition: `${bgX}% ${bgY}%`,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -88,6 +112,8 @@ export const SlideScene: React.FC<{ slide: Slide; isActive: boolean }> = ({
           filter: 'blur(50px)',
         }}
       />
+
+
 
       {/* Logo / Watermark cực kỳ xịn xò (Glassmorphism) */}
       <div
@@ -166,28 +192,41 @@ export const SlideScene: React.FC<{ slide: Slide; isActive: boolean }> = ({
             >
               BÀI GIẢNG
             </div>
-            <h1
-              style={{
-                fontSize: slide.imagePrompt ? 56 : 64, // Nhỏ lại chút nếu chia 2 cột
-                fontWeight: 800,
-                color: 'white',
-                margin: 0,
-                lineHeight: 1.15,
-                letterSpacing: -1,
-              }}
-            >
-              {slide.title}
-            </h1>
+              <h1
+                style={{
+                  fontSize: slide.imagePrompt ? 56 : 64, // Nhỏ lại chút nếu chia 2 cột
+                  fontWeight: 800,
+                  color: 'white',
+                  margin: 0,
+                  lineHeight: 1.15,
+                  letterSpacing: -1,
+                  // Giữ chiều cao cố định để không bị giật khi gõ chữ
+                  minHeight: slide.imagePrompt ? 130 : 150, 
+                }}
+              >
+                {titleToDisplay}
+              </h1>
           </div>
 
           {/* Bullet Points */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {slide.bulletPoints.map((point, i) => {
-              const bulletDelay = 30 + i * 20;
-              const bulletOpacity = interpolate(frame, [bulletDelay, bulletDelay + 15], [0, 1], {
+              // Timing for reading highlight
+              const pointStartFrame = titleReadingFrames + i * framesPerPoint;
+              const pointEndFrame = pointStartFrame + framesPerPoint;
+              const isActivePoint = frame >= pointStartFrame && frame < pointEndFrame;
+
+              // Appearance stagger
+              const bulletDelay = 15 + i * 15;
+              const appearOpacity = interpolate(frame, [bulletDelay, bulletDelay + 15], [0, 1], {
                 extrapolateLeft: 'clamp',
                 extrapolateRight: 'clamp',
               });
+              
+              // Target opacity based on highlight
+              const targetOpacity = isActivePoint ? 1 : 0.3;
+              const finalOpacity = appearOpacity * targetOpacity;
+
               const bulletX = spring({
                 frame: frame - bulletDelay,
                 fps,
@@ -200,7 +239,7 @@ export const SlideScene: React.FC<{ slide: Slide; isActive: boolean }> = ({
                 fps,
                 config: { damping: 12, stiffness: 120 },
                 from: 0.8,
-                to: 1,
+                to: isActivePoint ? 1.1 : 1, // To lên một chút khi đang đọc
               });
 
               return (
@@ -210,20 +249,26 @@ export const SlideScene: React.FC<{ slide: Slide; isActive: boolean }> = ({
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: 20,
-                    opacity: bulletOpacity,
+                    opacity: finalOpacity,
                     transform: `translateX(${bulletX}px) scale(${bulletScale})`,
+                    transition: 'opacity 0.3s ease',
                   }}
                 >
                   <div
                     style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #a78bfa, #60a5fa)',
+                      width: 40,
+                      height: 40,
                       flexShrink: 0,
-                      marginTop: 10,
+                      marginTop: -4,
                     }}
-                  />
+                  >
+                    {/* Lottie không cho phép playbackRate = 0, nên dùng 0.0001 để gần như đóng băng */}
+                    <Lottie 
+                      animationData={spiralData} 
+                      loop 
+                      playbackRate={isActivePoint ? 1 : 0.0001} 
+                    />
+                  </div>
                   <p
                     style={{
                       fontSize: slide.imagePrompt ? 24 : 28,
@@ -270,9 +315,14 @@ export const SlideScene: React.FC<{ slide: Slide; isActive: boolean }> = ({
         )}
       </div>
 
-      {/* Tích hợp AI Avatar: Luôn đặt ở góc dưới cùng bên trái, thu nhỏ gọn gàng */}
+      {/* Tích hợp AI Avatar và Heartbeat Lottie */}
       {slide.audioUrl && (
-        <Avatar audioSrc={slide.audioUrl} style={{ position: 'absolute', bottom: 50, left: 60, width: 110, height: 110 }} />
+        <>
+          <Avatar audioSrc={slide.audioUrl} style={{ position: 'absolute', bottom: 50, left: 60, width: 110, height: 110 }} />
+          <div style={{ position: 'absolute', bottom: 85, left: 160, width: 60, height: 60 }}>
+            <Lottie animationData={heartbeatData} loop />
+          </div>
+        </>
       )}
     </AbsoluteFill>
   );
