@@ -12,6 +12,7 @@ export interface SlideDto {
   title: string
   bulletPoints: string[]
   narrationText: string
+  imagePrompt?: string
 }
 
 export interface QuizDto {

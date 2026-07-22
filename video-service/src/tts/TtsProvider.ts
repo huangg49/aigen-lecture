@@ -50,16 +50,20 @@ export class MockTtsProvider implements TtsProvider {
 // FACTORY — điểm thay thế duy nhất khi chuyển sang TTS thật
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { GoogleTtsProvider } from './GoogleTtsProvider';
+
 /**
  * Trả về TTS provider hiện tại dựa trên biến môi trường TTS_PROVIDER.
  * - "mock" (mặc định): dùng MockTtsProvider
- * - "google": sẽ cần implement GoogleTtsProvider (TODO khi có API key)
- * - "elevenlabs": sẽ cần implement ElevenLabsTtsProvider (TODO khi có API key)
+ * - "google": dùng GoogleTtsProvider (gọi google-tts-api)
+ * - "elevenlabs": dùng ElevenLabsTtsProvider
  */
 export function getTtsProvider(): TtsProvider {
   const provider = process.env.TTS_PROVIDER ?? 'mock';
 
   switch (provider) {
+    case 'google':
+      return new GoogleTtsProvider();
     case 'elevenlabs': {
       const apiKey = process.env.ELEVENLABS_API_KEY;
       if (!apiKey) {

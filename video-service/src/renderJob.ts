@@ -158,6 +158,7 @@ async function runRenderPipeline(jobId: string, request: GenerateVideoRequest): 
       codec: 'h264',
       outputLocation: outputPath,
       inputProps,
+      timeoutInMilliseconds: 120000, // Tăng timeout lên 2 phút cho AI Image Generator
     });
 
     // ─── 6. Upload lên Supabase (nếu được bật) hoặc dùng URL local ──────────
