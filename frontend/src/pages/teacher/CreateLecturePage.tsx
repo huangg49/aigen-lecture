@@ -5,6 +5,7 @@ import {
   createLecture, getVideoStatus, generateFromFile,
   type VideoStatus, type SlideDto, type QuizDto,
 } from '@/api/lectureApi'
+import { v4 as uuidv4 } from 'uuid';
 
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -30,7 +31,7 @@ type FormStep = 'form' | 'generating' | 'done' | 'failed'
 
 function newSlide(): SlideForm {
   return {
-    id: crypto.randomUUID(),
+    id: uuidv4(),
     title: '',
     bulletPoints: [''],
     narrationText: '',
@@ -39,7 +40,7 @@ function newSlide(): SlideForm {
 
 function newQuiz(): QuizForm {
   return {
-    id: crypto.randomUUID(),
+    id: uuidv4(),
     questionText: '',
     options: ['A. ', 'B. ', 'C. ', 'D. '],
     correctAnswer: 'A',
@@ -160,7 +161,7 @@ export default function CreateLecturePage() {
       // Ánh xạ slides
       if (data.slides && data.slides.length > 0) {
         const newSlideForms: SlideForm[] = data.slides.map(s => ({
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           title: s.title || '',
           bulletPoints: s.bulletPoints?.length > 0 ? s.bulletPoints : [''],
           narrationText: s.narrationText || '',
@@ -174,7 +175,7 @@ export default function CreateLecturePage() {
       // Ánh xạ quizzes (có thể null/empty — không crash)
       if (data.quizzes && data.quizzes.length > 0) {
         const newQuizForms: QuizForm[] = data.quizzes.map(q => ({
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           questionText: q.questionText || '',
           options: q.options?.length === 4 ? q.options : ['A. ', 'B. ', 'C. ', 'D. '],
           correctAnswer: q.correctAnswer || 'A',
@@ -504,11 +505,10 @@ export default function CreateLecturePage() {
                           type="button"
                           onClick={() => updateQuizField(quiz.id, 'correctAnswer', letter)}
                           title={`Đặt ${letter} là đáp án đúng`}
-                          className={`w-7 h-7 rounded-full text-xs font-bold flex-shrink-0 transition-all ${
-                            isCorrect
-                              ? 'bg-green-500 text-white ring-2 ring-green-400 ring-offset-1'
-                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                          }`}
+                          className={`w-7 h-7 rounded-full text-xs font-bold flex-shrink-0 transition-all ${isCorrect
+                            ? 'bg-green-500 text-white ring-2 ring-green-400 ring-offset-1'
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                            }`}
                         >
                           {letter}
                         </button>
@@ -517,9 +517,8 @@ export default function CreateLecturePage() {
                           value={opt}
                           onChange={(e) => updateQuizOption(quiz.id, optIdx, e.target.value)}
                           placeholder={`Đáp án ${letter}...`}
-                          className={`flex-1 px-3 py-2 rounded-lg border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition bg-background ${
-                            isCorrect ? 'border-green-400/60' : 'border-border/60'
-                          }`}
+                          className={`flex-1 px-3 py-2 rounded-lg border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition bg-background ${isCorrect ? 'border-green-400/60' : 'border-border/60'
+                            }`}
                         />
                       </div>
                     )
