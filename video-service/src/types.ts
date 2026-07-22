@@ -8,6 +8,8 @@ export interface Slide {
   narrationText: string;
   /** Audio URL của giọng đọc đã tổng hợp */
   audioUrl?: string | null;
+  /** Từ khóa/prompt ảnh để sinh AI */
+  imagePrompt?: string;
 }
 
 /** Input gửi lên POST /generate-video */

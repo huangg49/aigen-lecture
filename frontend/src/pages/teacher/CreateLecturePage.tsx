@@ -14,6 +14,7 @@ interface SlideForm {
   title: string
   bulletPoints: string[]
   narrationText: string
+  imagePrompt?: string
 }
 
 interface QuizForm {
@@ -162,7 +163,8 @@ export default function CreateLecturePage() {
           id: crypto.randomUUID(),
           title: s.title || '',
           bulletPoints: s.bulletPoints?.length > 0 ? s.bulletPoints : [''],
-          narrationText: s.narrationText || ''
+          narrationText: s.narrationText || '',
+          imagePrompt: s.imagePrompt
         }))
         setSlides(newSlideForms)
       } else {
@@ -231,6 +233,7 @@ export default function CreateLecturePage() {
       title: s.title,
       bulletPoints: s.bulletPoints.filter((b) => b.trim()),
       narrationText: s.narrationText,
+      imagePrompt: s.imagePrompt
     }))
 
     const quizDtos: QuizDto[] = quizzes

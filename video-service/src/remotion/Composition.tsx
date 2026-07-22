@@ -1,5 +1,7 @@
 import React from 'react';
-import { Composition, Series } from 'remotion';
+import { Composition, AbsoluteFill, Audio, staticFile } from 'remotion';
+import { TransitionSeries, linearTiming } from '@remotion/transitions';
+import { fade } from '@remotion/transitions/fade';
 import { SlideScene } from './SlideScene';
 import type { Slide } from '../types';
 
@@ -10,21 +12,35 @@ interface CompositionProps {
 }
 
 /**
- * SlideComposition — wrap từng slide thành Series.Sequence, mỗi slide
+ * SlideComposition — wrap từng slide thành TransitionSeries.Sequence, mỗi slide
  * có thời lượng riêng (tính từ TTS durationMs, quy đổi ra frames).
+ * Áp dụng hiệu ứng Fade giữa các slide và thêm Nhạc nền Lofi.
  */
 const SlideComposition = ({
   slides,
   slideDurationsFrames,
 }: CompositionProps) => {
   return (
-    <Series>
+    <AbsoluteFill>
+      {/* Nhạc nền chạy lặp lại xuyên suốt video với âm lượng 15% */}
+      <Audio src={staticFile('bgm.mp3')} volume={0.15} loop />
+      
+      <TransitionSeries>
       {slides.map((slide, i) => (
-        <Series.Sequence key={i} durationInFrames={slideDurationsFrames[i] ?? 90}>
-          <SlideScene slide={slide} isActive={true} />
-        </Series.Sequence>
+        <React.Fragment key={i}>
+          <TransitionSeries.Sequence durationInFrames={slideDurationsFrames[i] ?? 90}>
+            <SlideScene slide={slide} isActive={true} />
+          </TransitionSeries.Sequence>
+          {i < slides.length - 1 && (
+            <TransitionSeries.Transition
+              presentation={fade()}
+              timing={linearTiming({ durationInFrames: 15 })}
+            />
+          )}
+        </React.Fragment>
       ))}
-    </Series>
+    </TransitionSeries>
+    </AbsoluteFill>
   );
 };
 

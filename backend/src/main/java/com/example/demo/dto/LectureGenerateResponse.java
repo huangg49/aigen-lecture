@@ -21,6 +21,7 @@ public class LectureGenerateResponse {
         private String title;
         private List<String> bulletPoints;
         private String narrationText;
+        private String imagePrompt;
     }
 
     @Data

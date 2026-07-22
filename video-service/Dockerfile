@@ -70,6 +70,9 @@ COPY --from=builder /app/dist ./dist
 # Copy Remotion compositions (required for the bundler at runtime)
 COPY --from=builder /app/src ./src
 
+# Copy thư mục public (chứa bgm.mp3 và tài nguyên tĩnh của Remotion)
+COPY --from=builder /app/public ./public
+
 # Ensure output directory exists for video/audio[cite: 5]
 RUN mkdir -p out/audio
 

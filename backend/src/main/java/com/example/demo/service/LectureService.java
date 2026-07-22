@@ -198,6 +198,9 @@ public class LectureService {
                 ObjectNode slideNode = objectMapper.createObjectNode();
                 slideNode.put("title", slide.getTitle());
                 slideNode.put("narrationText", slide.getNarrationText());
+                if (slide.getImagePrompt() != null) {
+                    slideNode.put("imagePrompt", slide.getImagePrompt());
+                }
                 ArrayNode bullets = objectMapper.createArrayNode();
                 slide.getBulletPoints().forEach(bullets::add);
                 slideNode.set("bulletPoints", bullets);
