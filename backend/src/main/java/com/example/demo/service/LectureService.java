@@ -237,6 +237,9 @@ public class LectureService {
         }
     }
 
+    @Value("${app.lecture.job-timeout-minutes:20}")
+    private long jobTimeoutMinutes;
+
     /**
      * Scheduled job: poll video-service mỗi 15 giây để cập nhật trạng thái
      * cho các lecture đang PROCESSING.
@@ -253,8 +256,18 @@ public class LectureService {
         if (processingLectures.isEmpty()) return;
 
         log.debug("Polling video-service cho {} lectures đang PROCESSING", processingLectures.size());
+        
+        java.time.LocalDateTime timeoutThreshold = java.time.LocalDateTime.now().minusMinutes(jobTimeoutMinutes);
 
         for (Lecture lecture : processingLectures) {
+            // Check for timeout
+            if (lecture.getCreatedAt() != null && lecture.getCreatedAt().isBefore(timeoutThreshold)) {
+                lecture.setVideoStatus(VideoStatus.FAILED);
+                lectureRepository.save(lecture);
+                log.warn("Lecture {} → video FAILED. Reason: Video rendering timed out or processing container restarted", lecture.getLectureId());
+                continue;
+            }
+
             try {
                 String url = videoServiceUrl + "/video-status/" + lecture.getVideoJobId();
                 String response = restTemplate.getForObject(url, String.class);
