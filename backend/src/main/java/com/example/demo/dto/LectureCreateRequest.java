@@ -36,7 +36,7 @@ public class LectureCreateRequest {
     @Getter
     @Setter
     public static class SlideDto {
-        @NotBlank
+        @NotBlank(message = "Title slide không được trống")
         private String title;
 
         @NotEmpty
@@ -44,6 +44,8 @@ public class LectureCreateRequest {
 
         @NotBlank
         private String narrationText;
+
+        private String imagePrompt;
     }
 
     @Getter

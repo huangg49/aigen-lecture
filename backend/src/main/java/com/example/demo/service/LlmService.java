@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.LectureGenerateResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +34,7 @@ public class LlmService {
         factory.setReadTimeout(20000);
         this.restTemplate = new RestTemplate(factory);
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     /**
@@ -56,7 +58,8 @@ public class LlmService {
                 + "    {\n"
                 + "      \"title\": \"Tiêu đề slide\",\n"
                 + "      \"bulletPoints\": [\"Điểm chính 1\", \"Điểm chính 2\"],\n"
-                + "      \"narrationText\": \"Lời thoại cho slide này, 2-3 câu.\"\n"
+                + "      \"narrationText\": \"Lời thoại cho slide này, 2-3 câu.\",\n"
+                + "      \"imagePrompt\": \"1 short English phrase describing the slide visual, e.g., 'a spinning earth in space, cinematic 4k'\"\n"
                 + "    }\n"
                 + "  ],\n"
                 + "  \"quizzes\": [\n"
